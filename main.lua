@@ -1,4 +1,5 @@
-local Rayfield = loadstring(game:HttpGet('https://sirius.menu'))()
+local Rayfield = loadstring(game:HttpGet('https://githubusercontent.com'))()
+
 
 local Window = Rayfield:CreateWindow({
    Name = "TSB TECHS | 60K KILLS",

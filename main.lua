@@ -1,98 +1,91 @@
-local Library = loadstring(game:HttpGet("https://githubusercontent.com"))()
-local Window = Library.CreateLib("TSB TECHS - XENO", "BloodTheme")
+local Rayfield = loadstring(game:HttpGet('https://sirius.menu'))()
 
--- Variáveis de Controle
-local player = game.Players.LocalPlayer
-local mouse = player:GetMouse()
-local UIS = game:GetService("UserInputService")
-local RS = game:GetService("RunService")
+local Window = Rayfield:CreateWindow({
+   Name = "TSB TECHS | 60K KILLS",
+   LoadingTitle = "Carregando Techs...",
+   LoadingSubtitle = "by Xeno",
+})
 
-local configs = {
-    Twisted = false,
-    LoopDash = false,
-    Lethal = false,
-    Meow = false,
-    Speed = 16
-}
+-- Variáveis Globais para as Techs
+_G.Twisted = false
+_G.Loop = false
+_G.AutoKyoto = false
+_G.Meow = false
 
--- Funções das Techs
-local function applyImpulse(vec, duration)
-    local root = player.Character and player.Character:FindFirstChild("HumanoidRootPart")
-    if root then
-        local bv = Instance.new("BodyVelocity")
-        bv.MaxForce = Vector3.new(1e6, 1e6, 1e6)
-        bv.Velocity = vec
-        bv.Parent = root
-        task.wait(duration)
-        bv:Destroy()
-    end
-end
+local Tab = Window:CreateTab("Combate", 4483362458)
 
--- Main Tab
-local Main = Window:NewTab("Techs Principal")
-local Section = Main:NewSection("Movimentação & Combat")
+-- 1. TWISTED DASH (Q)
+Tab:CreateToggle({
+   Name = "Twisted Dash (Q)",
+   CurrentValue = false,
+   Callback = function(Value) _G.Twisted = Value end,
+})
 
-Section:NewToggle("Twisted Dash (Teclado Q)", "Gira o personagem no dash", function(state)
-    configs.Twisted = state
-end)
+-- 2. LOOP DASH (T)
+Tab:CreateToggle({
+   Name = "Loop Dash (Segurar T)",
+   CurrentValue = false,
+   Callback = function(Value) _G.Loop = Value end,
+})
 
-Section:NewToggle("Loop Dash (Segurar T)", "Mantém o dash ativo", function(state)
-    configs.LoopDash = state
-end)
+-- 3. MEOW / OREO TECH (E)
+Tab:CreateToggle({
+   Name = "Meow/Oreo Tech (E)",
+   CurrentValue = false,
+   Callback = function(Value) _G.Meow = Value end,
+})
 
-Section:NewToggle("Lethal / Meow Tech", "Aumenta alcance e velocidade de reação", function(state)
-    configs.Lethal = state
-end)
+-- 4. BOTAO AUTO KYOTO
+Tab:CreateButton({
+   Name = "Executar Auto Kyoto (Garou)",
+   Callback = function()
+      -- Lógica rápida de impulso lateral + Skill 3
+      local root = game.Players.LocalPlayer.Character.HumanoidRootPart
+      root.Velocity = root.CFrame.RightVector * 50
+      task.wait(0.1)
+      -- Aqui você deve adicionar o Remote da Skill 3 capturado no Spy
+      print("Kyoto Executado!")
+   end,
+})
 
-Section:NewButton("Auto Kyoto (Combo Garou)", "Executa sequência Kyoto", function()
-    -- Lógica de automação de teclas (Exemplo de sequência)
-    -- Você precisa estar com o Garou e ter as skills prontas
-    print("Iniciando Kyoto...")
-    applyImpulse(player.Character.HumanoidRootPart.CFrame.RightVector * 50, 0.1)
-    task.wait(0.05)
-    -- Aqui você chamaria o RemoteEvent da Skill 3 capturado no Spy
-end)
-
--- Loop de Update (Roda o tempo todo)
-RS.RenderStepped:Connect(function()
-    if player.Character and player.Character:FindFirstChild("Humanoid") then
-        -- Speed Hack / Lethal Speed
-        if configs.Lethal then
-            player.Character.Humanoid.WalkSpeed = 35
-        else
-            player.Character.Humanoid.WalkSpeed = 16
-        end
-    end
-end)
-
--- Detectar Teclas
-UIS.InputBegan:Connect(function(input, gpe)
+-- LOGICA DE TECLAS (INPUT)
+game:GetService("UserInputService").InputBegan:Connect(function(input, gpe)
     if gpe then return end
+    local root = game.Players.LocalPlayer.Character.HumanoidRootPart
     
-    local root = player.Character and player.Character:FindFirstChild("HumanoidRootPart")
-    if not root then return end
-
-    -- Lógica Twisted (Q)
-    if input.KeyCode == Enum.KeyCode.Q and configs.Twisted then
-        task.wait(0.05)
+    -- Lógica Twisted (Giro 90 graus no Dash)
+    if input.KeyCode == Enum.KeyCode.Q and _G.Twisted then
+        task.wait(0.08)
         root.CFrame = root.CFrame * CFrame.Angles(0, math.rad(90), 0)
-        applyImpulse(root.CFrame.LookVector * 40, 0.1)
+    end
+
+    -- Lógica Meow Tech (Flick + Impulso)
+    if input.KeyCode == Enum.KeyCode.E and _G.Meow then
+        root.CFrame = root.CFrame * CFrame.Angles(0, math.rad(180), 0)
+        local bv = Instance.new("BodyVelocity", root)
+        bv.MaxForce = Vector3.new(1e6, 0, 1e6)
+        bv.Velocity = root.CFrame.LookVector * 50
+        task.wait(0.1)
+        bv:Destroy()
     end
 
     -- Lógica Loop Dash (T)
-    if input.KeyCode == Enum.KeyCode.T and configs.LoopDash then
-        _G.Loop = true
-        while _G.Loop do
-            applyImpulse(root.CFrame.LookVector * 60, 0.1)
-            task.wait(0.15)
+    if input.KeyCode == Enum.KeyCode.T and _G.Loop then
+        _G.LoopActive = true
+        while _G.LoopActive do
+            local bv = Instance.new("BodyVelocity", root)
+            bv.MaxForce = Vector3.new(1e6, 0, 1e6)
+            bv.Velocity = root.CFrame.LookVector * 65
+            task.wait(0.1)
+            bv:Destroy()
+            task.wait(0.05)
+            if not _G.LoopActive then break end
         end
     end
 end)
 
-UIS.InputEnded:Connect(function(input)
-    if input.KeyCode == Enum.KeyCode.T then
-        _G.Loop = false
-    end
+game:GetService("UserInputService").InputEnded:Connect(function(input)
+    if input.KeyCode == Enum.KeyCode.T then _G.LoopActive = false end
 end)
 
-game.StarterGui:SetCore("SendNotification", {Title = "TSB Techs", Text = "Script Carregado com Sucesso!", Duration = 5})
+Rayfield:Notify({Title = "Sucesso!", Content = "Todas as Techs prontas!", Duration = 5})
